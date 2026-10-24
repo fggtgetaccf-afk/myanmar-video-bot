@@ -6,40 +6,27 @@
 <title>MYANMAR RECAP</title>
 <style>
 *{box-sizing:border-box}
-body{
- margin:0;background:#10131c;color:white;
- font-family:Arial,sans-serif;padding:20px
-}
+body{margin:0;background:#10131c;color:white;font-family:Arial,sans-serif;padding:20px}
 header{font-size:25px;font-weight:bold;color:#8b7cff}
 header span{color:white}
 .sub{color:#a6adbd;font-size:14px}
-.card{
- background:#1b2030;border-radius:18px;
- padding:18px;margin-top:18px
-}
+.card{background:#1b2030;border-radius:18px;padding:18px;margin-top:18px}
 h2{font-size:20px}
-button{
- width:100%;padding:14px;border:0;
- border-radius:12px;background:#7767ff;
- color:white;font-size:16px;font-weight:bold;
- margin-top:12px
-}
-input,select,textarea{
- width:100%;padding:13px;margin-top:10px;
- border-radius:10px;border:1px solid #343b50;
- background:#111522;color:white
-}
+button{width:100%;padding:14px;border:0;border-radius:12px;background:#7767ff;color:white;font-size:16px;font-weight:bold;margin-top:12px}
+input,select,textarea{width:100%;padding:13px;margin-top:10px;border-radius:10px;border:1px solid #343b50;background:#111522;color:white}
 label{display:block;margin-top:14px;color:#c5cad7}
 .note{color:#a6adbd;font-size:13px;line-height:1.6}
 #result{white-space:pre-wrap;line-height:1.7}
 </style>
 </head>
 <body>
+
 <header>MYANMAR <span>RECAP</span></header>
 <p class="sub">AI Movie Recap Studio</p>
 
 <div class="card">
 <h2>🎬 Create Movie Recap</h2>
+
 <label>Movie Video ရွေးပါ</label>
 <input type="file" id="video" accept="video/*">
 
@@ -53,42 +40,75 @@ label{display:block;margin-top:14px;color:#c5cad7}
 <textarea id="story" rows="5"
 placeholder="Movie အကြောင်း သို့မဟုတ် Subtitle စာသား ထည့်ပါ..."></textarea>
 
-<button onclick="makeRecap()">Generate Recap</button>
-<p class="note">ဒီဗားရှင်းက UI Demo ဖြစ်ပါတယ်။ AI API မချိတ်ရသေးပါ။</p>
+<button id="generate" onclick="makeRecap()">🤖 Generate AI Recap</button>
+<p class="note" id="status">Gemini AI နဲ့ ချိတ်ဆက်ထားပါတယ်။</p>
 </div>
 
 <div class="card">
 <h2>📝 Recap Script</h2>
 <div id="result">သင့်ရဲ့ Recap Script ဒီနေရာမှာ ပေါ်လာပါမယ်။</div>
-<button onclick="downloadText()">Download Script</button>
+<button onclick="downloadText()">📥 Download Script</button>
 </div>
 
 <div class="card">
 <h2>⚙️ Settings</h2>
-<p class="note">နောက်အဆင့်မှာ AI API၊ Voice၊ Subtitle နဲ့ Video Export ကို ချိတ်ဆက်မယ်။</p>
+<p class="note">AI Backend: Colab + ngrok</p>
 </div>
 
 <script>
-function makeRecap(){
- const story=document.getElementById('story').value.trim();
- const lang=document.getElementById('lang').value;
- if(!story){
-  alert('Movie အကြောင်း သို့မဟုတ် Subtitle ကို အရင်ထည့်ပါ။');
-  return;
- }
- let title=lang==='my'?'မြန်မာ Movie Recap':'Movie Recap';
- document.getElementById('result').textContent=
- title+'\\n\\n'+story+'\\n\\n[Demo Version: AI မချိတ်ရသေးပါ]';
+const API_URL = "https://prevail-diligent-regulate.ngrok-free.dev/recap";
+
+async function makeRecap(){
+  const story = document.getElementById('story').value.trim();
+  const lang = document.getElementById('lang').value;
+  const status = document.getElementById('status');
+  const button = document.getElementById('generate');
+  const result = document.getElementById('result');
+
+  if(!story){
+    alert('Movie အကြောင်း သို့မဟုတ် Subtitle စာသားကို အရင်ထည့်ပါ။');
+    return;
+  }
+
+  button.disabled = true;
+  button.textContent = '⏳ AI စဉ်းစားနေပါတယ်...';
+  status.textContent = 'AI ထံမှ အဖြေကို စောင့်နေပါသည်။';
+
+  try{
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({story: story, language: lang})
+    });
+
+    const data = await response.json();
+
+    if(!response.ok){
+      throw new Error(data.error || 'AI API Error');
+    }
+
+    result.textContent = data.recap || 'AI က စာသားမပြန်ပေးပါ။';
+    status.textContent = '✅ AI Recap အောင်မြင်ပါပြီ။';
+  }catch(error){
+    result.textContent = '❌ ချိတ်ဆက်မှု မအောင်မြင်ပါ။\n' + error.message;
+    status.textContent = 'Colab Backend နဲ့ ngrok ကို စစ်ဆေးပါ။';
+  }finally{
+    button.disabled = false;
+    button.textContent = '🤖 Generate AI Recap';
+  }
 }
+
 function downloadText(){
- const text=document.getElementById('result').textContent;
- const blob=new Blob([text],{type:'text/plain;charset=utf-8'});
- const a=document.createElement('a');
- a.href=URL.createObjectURL(blob);
- a.download='movie-recap.txt';
- a.click();
- URL.revokeObjectURL(a.href);
+  const text = document.getElementById('result').textContent;
+  const blob = new Blob([text], {type:'text/plain;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'myanmar-movie-recap.txt';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 </script>
+
 </body>
 </html>
