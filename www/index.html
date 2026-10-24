@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MYANMAR RECAP</title>
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;background:#10131c;color:white;
+ font-family:Arial,sans-serif;padding:20px
+}
+header{font-size:25px;font-weight:bold;color:#8b7cff}
+header span{color:white}
+.sub{color:#a6adbd;font-size:14px}
+.card{
+ background:#1b2030;border-radius:18px;
+ padding:18px;margin-top:18px
+}
+h2{font-size:20px}
+button{
+ width:100%;padding:14px;border:0;
+ border-radius:12px;background:#7767ff;
+ color:white;font-size:16px;font-weight:bold;
+ margin-top:12px
+}
+input,select,textarea{
+ width:100%;padding:13px;margin-top:10px;
+ border-radius:10px;border:1px solid #343b50;
+ background:#111522;color:white
+}
+label{display:block;margin-top:14px;color:#c5cad7}
+.note{color:#a6adbd;font-size:13px;line-height:1.6}
+#result{white-space:pre-wrap;line-height:1.7}
+</style>
+</head>
+<body>
+<header>MYANMAR <span>RECAP</span></header>
+<p class="sub">AI Movie Recap Studio</p>
+
+<div class="card">
+<h2>🎬 Create Movie Recap</h2>
+<label>Movie Video ရွေးပါ</label>
+<input type="file" id="video" accept="video/*">
+
+<label>Recap Language</label>
+<select id="lang">
+<option value="my">မြန်မာဘာသာ</option>
+<option value="en">English</option>
+</select>
+
+<label>Movie အကြောင်း / Subtitle</label>
+<textarea id="story" rows="5"
+placeholder="Movie အကြောင်း သို့မဟုတ် Subtitle စာသား ထည့်ပါ..."></textarea>
+
+<button onclick="makeRecap()">Generate Recap</button>
+<p class="note">ဒီဗားရှင်းက UI Demo ဖြစ်ပါတယ်။ AI API မချိတ်ရသေးပါ။</p>
+</div>
+
+<div class="card">
+<h2>📝 Recap Script</h2>
+<div id="result">သင့်ရဲ့ Recap Script ဒီနေရာမှာ ပေါ်လာပါမယ်။</div>
+<button onclick="downloadText()">Download Script</button>
+</div>
+
+<div class="card">
+<h2>⚙️ Settings</h2>
+<p class="note">နောက်အဆင့်မှာ AI API၊ Voice၊ Subtitle နဲ့ Video Export ကို ချိတ်ဆက်မယ်။</p>
+</div>
+
+<script>
+function makeRecap(){
+ const story=document.getElementById('story').value.trim();
+ const lang=document.getElementById('lang').value;
+ if(!story){
+  alert('Movie အကြောင်း သို့မဟုတ် Subtitle ကို အရင်ထည့်ပါ။');
+  return;
+ }
+ let title=lang==='my'?'မြန်မာ Movie Recap':'Movie Recap';
+ document.getElementById('result').textContent=
+ title+'\\n\\n'+story+'\\n\\n[Demo Version: AI မချိတ်ရသေးပါ]';
+}
+function downloadText(){
+ const text=document.getElementById('result').textContent;
+ const blob=new Blob([text],{type:'text/plain;charset=utf-8'});
+ const a=document.createElement('a');
+ a.href=URL.createObjectURL(blob);
+ a.download='movie-recap.txt';
+ a.click();
+ URL.revokeObjectURL(a.href);
+}
+</script>
+</body>
+</html>
